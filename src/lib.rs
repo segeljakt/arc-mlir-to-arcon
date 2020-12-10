@@ -37,32 +37,32 @@ use kompact::prelude::ComponentDefinition;
 
 struct MyOperator<B: Backend> {
     state: MyOperatorState<B>,
+    outputs: Vec<MyOutputData>,
 }
+
+type MyInputData = MyData;
+type MyOutputData = MyData;
 
 #[cfg_attr(feature = "arcon_serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Arcon, prost::Message, Copy, Clone, abomonation_derive::Abomonation)]
 #[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
-pub struct MyData {
+struct MyData {
     #[prost(int32, tag = "1")]
     pub i: i32,
     #[prost(float, tag = "2")]
     pub f: f32,
 }
 
-type MyStateType1<B> = state::Value<MyData, B>;
-type MyStateType2<B> = state::Appender<MyData, B>;
-type MyStateType3<B> = state::Map<u64, MyData, B>;
-
 #[derive(ArconState)]
 struct MyOperatorState<B: Backend> {
-    state1: MyStateType1<B>,
-    state2: MyStateType2<B>,
-    state3: MyStateType3<B>,
+    state1: state::Value<MyData, B>,
+    state2: state::Appender<MyData, B>,
+    state3: state::Map<u64, MyData, B>,
 }
 
 impl<B: Backend> Operator for MyOperator<B> {
-    type IN = MyData;
-    type OUT = MyData;
+    type IN = MyInputData;
+    type OUT = MyOutputData;
     type TimerState = ArconNever;
     type OperatorState = MyOperatorState<B>;
 
@@ -73,18 +73,11 @@ impl<B: Backend> Operator for MyOperator<B> {
     ) -> ArconResult<()> {
         let timestamp = element.timestamp;
 
-        let mut outputs = Vec::new();
-
         // No need to use the return values
-        let (_state1, _state2, _state3, _outputs_x) = my_handler(
-            element.data,
-            &mut self.state.state1,
-            &mut self.state.state2,
-            &mut self.state.state3,
-            &mut outputs,
-        )?;
+        let _op = my_handler(element.data, self)?;
 
-        for data in outputs {
+        // Clone can be avoided with std::mem::swap
+        for data in self.outputs.clone().into_iter() {
             ctx.output(ArconElement { data, timestamp });
         }
 
@@ -98,44 +91,23 @@ impl<B: Backend> Operator for MyOperator<B> {
     }
 }
 
-type State<'i, T> = &'i mut T;
-
-macro_rules! functional {
-    { $var:ident $($rest:tt)* } => { { $var $($rest)*; $var } }
-}
-
-fn my_handler<'i, B: Backend>(
-    input: MyData,
-    state1: State<'i, MyStateType1<B>>,
-    state2: State<'i, MyStateType2<B>>,
-    state3: State<'i, MyStateType3<B>>,
-    outputs: State<'i, Vec<MyData>>,
-) -> ArconResult<(
-    State<'i, MyStateType1<B>>,
-    State<'i, MyStateType2<B>>,
-    State<'i, MyStateType3<B>>,
-    State<'i, Vec<MyData>>,
-)> {
-    let x0 = state1.get();
+fn my_handler<B: Backend>(input: MyData, op: &mut MyOperator<B>) -> ArconResult<()> {
+    let x0 = op.state.state1.get();
     let x1 = x0.is_some();
-    let (state1_x1, state2_x2, state3_x1, outputs_x3) = if x1 {
+    let _x11 = if x1 {
         let x2 = 0;
         let x3 = 1.1;
         let foo = MyData { i: x2, f: x3 };
-        let outputs_x0 = functional!(outputs.push(foo));
-        let state1_x0 = functional!(state1.put(foo));
-        let state2_x0 = functional!(state2.clear()?);
-        let x4 = (state1_x0, state2_x0, state3, outputs_x0);
-        x4
-    } else {
-        let x5 = 5;
-        let state2_x1 = functional!(state2.append(input)?);
-        let state3_x0 = functional!(state3.put(x5, input)?);
-        let outputs_x1 = functional!(outputs.push(input));
-        let x6 = (state1, state2_x1, state3_x0, outputs_x1);
+        let _x4 = op.outputs.push(foo);
+        let _x5 = op.state.state1.put(foo);
+        let x6 = op.state.state2.clear()?;
         x6
+    } else {
+        let x7 = 5;
+        let _x8 = op.state.state2.append(input)?;
+        let _x9 = op.state.state3.put(x7, input)?;
+        let x10 = op.outputs.push(input);
+        x10
     };
-    let x7 = (state1_x1, state2_x2, state3_x1, outputs_x3);
-    let x8 = Ok(x7);
-    x8
+    Ok(())
 }
