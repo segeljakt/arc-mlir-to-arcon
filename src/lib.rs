@@ -36,10 +36,10 @@ use arcon_state::{index::IndexOps, Backend};
 use kompact::prelude::ComponentDefinition;
 
 #[derive(ArconState)]
-struct MyOperator<B: Backend> {
-    state1: state::Value<MyData, B>,
-    state2: state::Appender<MyData, B>,
-    state3: state::Map<u64, MyData, B>,
+struct MyOperator {
+    state1: state::Value<MyData, Sled>,
+    state2: state::Appender<MyData, Sled>,
+    state3: state::Map<u64, MyData, Sled>,
     #[ephemeral]
     outputs: Vec<MyOutputData>,
 }
@@ -57,7 +57,7 @@ struct MyData {
     pub f: f32,
 }
 
-impl<B: Backend> Operator for MyOperator<B> {
+impl Operator for MyOperator {
     type IN = MyInputData;
     type OUT = MyOutputData;
     type TimerState = ArconNever;
@@ -69,12 +69,12 @@ impl<B: Backend> Operator for MyOperator<B> {
         mut ctx: OperatorContext<Self, impl Backend, impl ComponentDefinition>,
     ) -> ArconResult<()> {
         let timestamp = element.timestamp;
+        self.outputs.clear();
 
         // No need to use the return values
-        let _op = my_handler(element.data, self)?;
+        my_handler(element.data, self)?;
 
-        // Clone can be avoided with std::mem::swap
-        for data in self.outputs.clone().into_iter() {
+        for data in self.outputs.drain(..) {
             ctx.output(ArconElement { data, timestamp });
         }
 
@@ -88,7 +88,7 @@ impl<B: Backend> Operator for MyOperator<B> {
     }
 }
 
-fn my_handler<B: Backend>(input: MyData, op: &mut MyOperator<B>) -> ArconResult<()> {
+fn my_handler(input: MyData, op: &mut MyOperator) -> ArconResult<()> {
     let x0 = op.state1.get();
     let x1 = x0.is_some();
     let _x11 = if x1 {
