@@ -7,7 +7,7 @@
 //! ```txt
 //! type MyData = { i:i32, f:f32 };
 //!
-//! task MyOperator() (In(MyData)) -> (Out(MyData))
+//! task MyOperator(p0:i32, p1:i32) (In(MyData)) -> (Out(MyData))
 //!
 //!     -- State types supported by Arcon.
 //!     state state1: Value<MyData>;
@@ -16,7 +16,7 @@
 //!
 //!     on In(data) => {
 //!         if let Some(_) = state1.get() {
-//!             let foo = { i=0, f=1.1 };
+//!             let foo = { i=0 + p0, f=1.1 + p1 };
 //!             emit Out(foo);
 //!             state1.set(foo);
 //!             state2.clear();
@@ -40,6 +40,11 @@ struct MyOperator {
     state1: state::Value<MyData, Sled>,
     state2: state::Appender<MyData, Sled>,
     state3: state::Map<u64, MyData, Sled>,
+
+    #[ephemeral]
+    p0: f32,
+    #[ephemeral]
+    p1: i32,
 }
 
 type MyInputData = MyData;
@@ -91,8 +96,8 @@ fn my_handler(
     let x0 = op.state1.get();
     let x1 = x0.is_some();
     let _x11 = if x1 {
-        let x2 = 0;
-        let x3 = 1.1;
+        let x2 = 0 + op.p1;
+        let x3 = 1.1 + op.p0;
         let foo = MyData { i: x2, f: x3 };
         let _x4 = ctx.output(ArconElement {
             data: foo,
