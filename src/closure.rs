@@ -107,7 +107,7 @@ mod option_3 {
     // * Closure is moved, cannot be reused
 }
 
-/// Option 3: Dynamic Dispatch with Custom Closure trait
+/// Option 4: Dynamic Dispatch with Custom Closure trait
 mod option_4 {
     use std::rc::Rc;
     fn foo(b: i32) -> Rc<dyn Closure<I = (i32,), O = i32>> {
@@ -153,4 +153,44 @@ mod option_4 {
     // * Can store closures in vectors
     // Cons:
     // * Performance loss
+}
+
+/// Option 5: Static dispatch with function pointers
+mod option_5 {
+    use std::rc::Rc;
+    fn foo(b: i32) -> Rc<Closure1> {
+        let f1: Rc<Closure1> = Rc::new(Closure1 { fun: f1, env: (b,) });
+        let f2: Rc<Closure2> = Rc::new(Closure2 { fun: f2, env: (b,) });
+//         vec![f1.clone(), f2.clone()]; NOT OK
+        bar_f1(f1.clone());
+        bar_f1(f1.clone());
+        bar_f2(f2.clone());
+        f1
+    }
+    fn bar_f1(f: Rc<Closure1>) -> i32 {
+        (f.fun)(5, f.env)
+    }
+    fn bar_f2(f: Rc<Closure2>) -> i32 {
+        (f.fun)(5, f.env)
+    }
+    fn f1(a: i32, (b,): (i32,)) -> i32 {
+        a + b
+    }
+    fn f2(a: i32, (b,): (i32,)) -> i32 {
+        a * b
+    }
+    struct Closure1 {
+        fun: fn(i32, (i32,)) -> i32,
+        env: (i32,),
+    }
+    struct Closure2 {
+        fun: fn(i32, (i32,)) -> i32,
+        env: (i32,),
+    }
+    // Same as previous, except:
+    // Pros:
+    // * Lower-level (no traits involved)
+    // Cons:
+    // * Cannot store closures in vectors
+    // * Must monomorphise everything
 }
