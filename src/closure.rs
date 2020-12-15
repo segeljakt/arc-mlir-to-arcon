@@ -18,14 +18,17 @@
 
 /// Option 1: Static dispatch
 mod option_1 {
+    // foo(b: &i32) also works
     fn foo(b: i32) -> impl Fn(i32) -> i32 {
         let f1 = |a: i32| a + b;
         let f2 = |a: i32| a + b;
-        let f3 = move |a: i32| a + b;
+        let c = std::rc::Rc::new(1);
+        let f3 = move |a: i32| a + *c;
         // vec![f1, f2]; ERROR
         bar(f1);
         bar(f2);
         bar(f2);
+        bar(f3.clone());
         // f2 ERROR
         f3
     }
@@ -37,6 +40,68 @@ mod option_1 {
     // Cons:
     // * Cannot store multiple closures in the same vector
     // * Must move environment when moving out of scope
+}
+
+mod option_1_1 {
+    fn foo(b: std::rc::Rc<i32>) -> impl Fn(i32) -> i32 {
+        let f1 = {
+            let b = b.clone();
+            move |a: i32| a + *b
+        };
+        let f2 = {
+            let b = b.clone();
+            move |a: i32| a + *b
+        };
+        // vec![f1, f2]; ERROR
+        bar(f1.clone());
+        bar(f2.clone());
+        bar(f2.clone());
+        f2
+    }
+    fn bar(f: impl Fn(i32) -> i32) -> i32 {
+        f(5)
+    }
+    // Small addition which explicitly clones all environment variables before
+    // closing over them, since some may not implement Copy. Also, Clone the
+    // closures before using them or else they cannot be used multiple times.
+}
+
+mod option_1_2 {
+    fn foo(b: &mut i32) {
+        // let f3 = move |a:i32| a + *b;
+        // let f3 = move |a:i32| a + *b; // ERROR
+        // bar(f3);
+        // bar(f3);
+        let f1 = |a: i32| a + *b;
+        let f2 = |a: i32| a + *b; // OK
+        bar(f1);
+        bar(f2);
+    }
+    fn bar(f: impl Fn(i32) -> i32) -> i32 {
+        f(5)
+    }
+    fn baz(a: &mut i32) -> impl Fn(i32, &mut i32) -> i32 + '_ {
+        let f1 = move |b: i32, a: &mut i32| {
+            *a = b;
+            *a
+        };
+        let f2 = move |b: i32, a: &mut i32| {
+            *a = b;
+            *a
+        };
+        qux(f1, f2, a);
+        f2
+    }
+    fn qux(
+        f1: impl Fn(i32, &mut i32) -> i32,
+        f2: impl Fn(i32, &mut i32) -> i32,
+        a: &mut i32,
+    ) -> i32 {
+        f1(5, a) + f2(5, a)
+    }
+    // It is not possible to `move` a closure more than once if it contains a
+    // mutable environment. Therefore,  If the closure captures a mutable variable (&mut), then the reference cannot
+    // be shared if it is moved.
 }
 
 /// Option 2: Dynamic dispatch
@@ -62,7 +127,6 @@ mod option_2 {
 
 /// Option 3: Static Dispatch with custom Closure trait
 mod option_3 {
-    use std::rc::Rc;
     fn foo(b: i32) -> impl Closure<I = (i32,), O = i32> {
         let f1 = Environment1 { b };
         let f2 = Environment2 { b };
@@ -161,7 +225,7 @@ mod option_5 {
     fn foo(b: i32) -> Rc<Closure1> {
         let f1: Rc<Closure1> = Rc::new(Closure1 { fun: f1, env: (b,) });
         let f2: Rc<Closure2> = Rc::new(Closure2 { fun: f2, env: (b,) });
-//         vec![f1.clone(), f2.clone()]; NOT OK
+        //         vec![f1.clone(), f2.clone()]; NOT OK
         bar_f1(f1.clone());
         bar_f1(f1.clone());
         bar_f2(f2.clone());
@@ -193,4 +257,63 @@ mod option_5 {
     // Cons:
     // * Cannot store closures in vectors
     // * Must monomorphise everything
+}
+
+/// Option 6: Static dispatch with Rust's Fn trait
+mod option_6 {
+    fn foo(b: i32) -> impl Fn<(i32,), Output = i32> {
+        let f1 = Environment1 { b };
+        let f2 = Environment2 { b };
+        // vec![f1, f2]; ERROR
+        bar(f1);
+        // bar(f2); ERROR
+        f2
+    }
+    fn bar(f: impl Fn<(i32,), Output = i32>) -> i32 {
+        f(5)
+    }
+    #[derive(Clone)]
+    struct Environment1 {
+        b: i32,
+    }
+    #[derive(Clone)]
+    struct Environment2 {
+        b: i32,
+    }
+    impl FnOnce<(i32,)> for Environment1 {
+        type Output = i32;
+        extern "rust-call" fn call_once(self, (a,): (i32,)) -> Self::Output {
+            a + self.b
+        }
+    }
+    impl FnOnce<(i32,)> for Environment2 {
+        type Output = i32;
+        extern "rust-call" fn call_once(self, (a,): (i32,)) -> Self::Output {
+            a * self.b
+        }
+    }
+    impl FnMut<(i32,)> for Environment1 {
+        extern "rust-call" fn call_mut(&mut self, (a,): (i32,)) -> Self::Output {
+            a + self.b
+        }
+    }
+    impl FnMut<(i32,)> for Environment2 {
+        extern "rust-call" fn call_mut(&mut self, (a,): (i32,)) -> Self::Output {
+            a * self.b
+        }
+    }
+    impl Fn<(i32,)> for Environment1 {
+        extern "rust-call" fn call(&self, (a,): (i32,)) -> Self::Output {
+            a + self.b
+        }
+    }
+    impl Fn<(i32,)> for Environment2 {
+        extern "rust-call" fn call(&self, (a,): (i32,)) -> Self::Output {
+            a * self.b
+        }
+    }
+    // Pros:
+    // * Closures automatically become compatible with Rust APIs
+    // Cons:
+    // * Closure is moved, cannot be reused
 }
