@@ -367,7 +367,37 @@ mod option_8 {
         bar(f1.clone());
         f1
     }
-    fn bar(f: impl Fn<(i32,), Output = i32>) -> i32 {
+    fn bar(f: impl Fn(i32) -> i32) -> i32 {
         f(5)
+    }
+}
+
+/// Option 9: FnMutant
+mod option_9 {
+
+    use fnmutant::{mutant, FnMutant};
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    fn foo(b: &mut i32) -> FnMutant<&mut i32, i32, i32, impl for<'i> Fn(&'i mut i32, i32) -> i32> {
+        let f1 = mutant(&|b: &mut i32, a: i32| {
+            *b += a;
+            *b
+        });
+        bar(&f1, b);
+        bar(&f1, b);
+        //         bar(f1, b);
+        f1
+    }
+    fn bar(
+        f: &FnMutant<&mut i32, i32, i32, impl for<'i> Fn(&mut i32, i32) -> i32>,
+        b: &mut i32,
+    ) -> i32 {
+        (f.f)(b, 5);
+        (f.f)(b, 5)
+    }
+
+    fn baz(b: &mut i32, a: i32) -> i32 {
+        *b += a;
+        *b
     }
 }
