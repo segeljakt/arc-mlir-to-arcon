@@ -317,3 +317,57 @@ mod option_6 {
     // Cons:
     // * Closure is moved, cannot be reused
 }
+
+/// Option 8: &mut as parameter
+mod option_7 {
+    fn foo(b: &mut i32) -> impl Fn(i32, &mut i32) -> i32 {
+        let f1 = move |a: i32, b: &mut i32| {
+            *b = a;
+            *b
+        };
+        let f2 = move |a: i32, b: &mut i32| {
+            *b = a;
+            *b
+        };
+        bar(f1, b);
+        bar(f1, b);
+        bar(f2, b);
+        f2
+    }
+    fn bar(mut f: impl Fn(i32, &mut i32) -> i32, b: &mut i32) -> i32 {
+        my_foreign_function(|a: i32| f(5, b))
+    }
+    fn my_foreign_function(mut f: impl FnMut(i32) -> i32) -> i32 {
+        f(5)
+    }
+    // Pros:
+    // * Closures automatically become compatible with Rust APIs
+    // Cons:
+    // * Closure is moved, cannot be reused
+}
+
+/// Option 8: Capture Rc<RefCell<State>>
+mod option_8 {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+    fn foo(b: Rc<i32>, c: Rc<RefCell<i32>>) -> impl Fn(i32) -> i32 {
+        let f1 = {
+            let b = b.clone();
+            let c = c.clone();
+            move |a: i32| {
+                {
+                    *c.borrow_mut() = a + *b;
+                }
+                {
+                    *c.borrow()
+                }
+            }
+        };
+        bar(f1.clone());
+        bar(f1.clone());
+        f1
+    }
+    fn bar(f: impl Fn<(i32,), Output = i32>) -> i32 {
+        f(5)
+    }
+}
