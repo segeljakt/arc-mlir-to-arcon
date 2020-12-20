@@ -18,3 +18,4 @@ abomonation = "0.7.3"
 bumpalo = { version = "3.4.0", features = ["collections", "boxed"] }
 pyo3 = "0.12.4"
 fnmutant = "0.1.0"
+cached = "0.22.0"
