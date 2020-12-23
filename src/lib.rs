@@ -5,6 +5,7 @@ mod operators {
     mod python;
     mod cache;
     mod immutable;
+    mod adt;
 }
 mod constructs {
     mod closure;
