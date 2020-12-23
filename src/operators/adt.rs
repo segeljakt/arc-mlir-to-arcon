@@ -27,8 +27,8 @@ pub(crate) enum List {
 
 #[derive(Message, Clone, Abomonation)]
 pub(crate) struct Cons {
-    #[prost(int32, tag = "3")]
-    val: i32,
+    #[prost(int32, repeated, tag = "4")]
+    val: Vec<i32>,
     #[prost(oneof = "List", tags = "1, 2")]
     tail: Option<List>,
 }
@@ -52,7 +52,8 @@ impl Operator for MyOperator {
         let mut list = data.list;
         let mut data = 0;
         while let Some(List::Cons(e)) = list {
-            data += e.val;
+            let nd = ndarray::Array::from(e.val);
+            data += nd.sum();
             list = e.tail
         }
 
