@@ -37,6 +37,8 @@ version = "0.5.0"
 version = "0.7.3"
 
 [dependencies.bumpalo]
+git = "https://github.com/hansihe/bumpalo"
+branch = "nightly_alloc"
 version = "3.4.0"
 features = ["collections", "boxed"]
 
@@ -62,3 +64,13 @@ version = "0.2.0"
 [dependencies.ndarray]
 version = "0.14.0"
 features = ["serde"]
+
+[dependencies.tailcall]
+version = "0.1.4"
+
+[dependencies.rc-box]
+version = "1.1.1"
+
+[dependencies.enum-methods]
+git = "https://github.com/segeljakt/enum-methods"
+version = "0.0.8"

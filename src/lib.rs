@@ -1,12 +1,18 @@
 #![feature(unboxed_closures)]
 #![feature(fn_traits)]
+#![feature(allocator_api)]
+
+extern crate enum_methods;
+
 mod operators {
+    mod adt;
     mod arena;
-    mod python;
+    mod box_to_rc;
     mod cache;
     mod immutable;
-    mod adt;
+    mod python;
 }
+
 mod constructs {
     mod closure;
 }
