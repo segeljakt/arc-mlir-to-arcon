@@ -8,8 +8,8 @@ use kompact::prelude::ComponentDefinition;
 pub(crate) struct MyOperator {}
 
 #[cfg_attr(feature = "arcon_serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Arcon, prost::Message, Copy, Clone, abomonation_derive::Abomonation)]
-#[arcon(unsafe_ser_id = 12, reliable_ser_id = 13, version = 1)]
+#[derive(Arcon, prost::Message, Copy, Clone)]
+#[arcon(reliable_ser_id = 13, version = 1)]
 pub(crate) struct MyData {
     #[prost(uint64, tag = "1")]
     pub u: u64,
@@ -25,7 +25,7 @@ impl Operator for MyOperator {
         &mut self,
         element: ArconElement<Self::IN>,
         mut ctx: OperatorContext<Self, impl Backend, impl ComponentDefinition>,
-    ) -> ArconResult<()> {
+    ) -> OperatorResult<()> {
         let ArconElement { data, timestamp } = element;
 
         let u = fib(data.u);

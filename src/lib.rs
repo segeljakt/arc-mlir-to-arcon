@@ -16,3 +16,8 @@ mod operators {
 mod constructs {
     mod closure;
 }
+
+mod tests {
+    #[cfg(test)]
+    mod wordcount;
+}

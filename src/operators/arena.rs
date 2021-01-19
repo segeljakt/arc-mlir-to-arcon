@@ -31,7 +31,7 @@ impl Operator for MyOperator {
         &mut self,
         element: ArconElement<Self::IN>,
         mut ctx: OperatorContext<Self, impl Backend, impl ComponentDefinition>,
-    ) -> ArconResult<()> {
+    ) -> OperatorResult<()> {
         // Always begin by resetting the allocator to 0.
         self.arena.reset();
         // Arena should be borrowed immutably, state can be borrowed mutably.

@@ -4,23 +4,33 @@ version = "0.1.0"
 authors = ["Klas Segeljakt <klasseg@kth.se>"]
 edition = "2018"
 
+[dependencies]
+abomonation_derive = "0.5.0"
+abomonation = "0.7.3"
+pyo3 = "0.13.1"
+fnmutant = "0.1.0"
+cached = "0.23.0"
+rpds = "0.8.0"
+ppar = "0.2.0"
+tailcall = "0.1.4"
+rc-box = "1.1.1"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.arcorn]
+git = "https://github.com/segeljakt/arcorn"
 
 [dependencies.arcon]
 git = "https://github.com/cda-group/arcon"
-version = "0.1.3"
 
 [dependencies.arcon_error]
 git = "https://github.com/cda-group/arcon"
-version = "0.1.1"
 
 [dependencies.arcon_state]
 git = "https://github.com/cda-group/arcon"
-version = "0.1.0"
 
 [dependencies.arcon_macros]
 git = "https://github.com/cda-group/arcon"
-version = "0.1.0"
 
 [dependencies.kompact]
 git = "https://github.com/kompics/kompact.git"
@@ -28,13 +38,7 @@ branch = "master"
 features = ["type_erasure"]
 
 [dependencies.prost]
-git = "https://github.com/danburkert/prost.git"
-
-[dependencies.abomonation_derive]
-version = "0.5.0"
-
-[dependencies.abomonation]
-version = "0.7.3"
+version = "0.7"
 
 [dependencies.bumpalo]
 git = "https://github.com/hansihe/bumpalo"
@@ -42,34 +46,13 @@ branch = "nightly_alloc"
 version = "3.4.0"
 features = ["collections", "boxed"]
 
-[dependencies.pyo3]
-version = "0.12.4"
-
-[dependencies.fnmutant]
-version = "0.1.0"
-
-[dependencies.cached]
-version = "0.22.0"
-
-[dependencies.rpds]
-version = "0.8.0"
-
 [dependencies.im-rc]
 version = "15.0.0"
 features = ["pool"]
 
-[dependencies.ppar]
-version = "0.2.0"
-
 [dependencies.ndarray]
 version = "0.14.0"
 features = ["serde"]
-
-[dependencies.tailcall]
-version = "0.1.4"
-
-[dependencies.rc-box]
-version = "1.1.1"
 
 [dependencies.enum-methods]
 git = "https://github.com/segeljakt/enum-methods"

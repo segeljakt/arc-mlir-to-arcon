@@ -2,20 +2,20 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub(crate) struct MyData {
-    pub(crate) list: Option<List>,
+    pub(crate) list: Rc<List>,
 }
 
 #[derive(Clone)]
 pub(crate) enum List {
     Cons(Rc<Cons>),
-    Nil(Nil),
+    Nil(Rc<Nil>),
 }
 
 #[derive(Clone)]
 pub(crate) struct Cons {
-    pub(crate) val: ndarray::ArcArray<i32, ndarray::Dim<[usize; 1]>>,
-    pub(crate) tail: Option<List>,
+    pub(crate) val: i32,
+    pub(crate) tail: Rc<List>,
 }
 
 #[derive(Clone)]
-pub(crate) struct Nil;
+pub(crate) struct Nil {}

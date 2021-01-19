@@ -401,3 +401,13 @@ mod option_9 {
         *b
     }
 }
+
+/// Option 10: Pure functions / "Fibers"
+mod option_10 {
+    fn foo(b: &mut i32) -> impl Fn(i32, &mut i32) -> i32 {
+        move |a: i32, b: &mut i32| {
+            *b += a;
+            *b
+        }
+    }
+}

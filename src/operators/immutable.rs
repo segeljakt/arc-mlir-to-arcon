@@ -25,7 +25,7 @@ impl Operator for MyOperator {
         &mut self,
         element: ArconElement<Self::IN>,
         mut ctx: OperatorContext<Self, impl Backend, impl ComponentDefinition>,
-    ) -> ArconResult<()> {
+    ) -> OperatorResult<()> {
         let ArconElement { data, timestamp } = element;
 
         let u = test(data.u);

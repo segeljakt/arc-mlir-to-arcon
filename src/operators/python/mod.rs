@@ -26,7 +26,7 @@ impl Operator for MyOperator {
         &mut self,
         element: ArconElement<Self::IN>,
         mut ctx: OperatorContext<Self, impl Backend, impl ComponentDefinition>,
-    ) -> ArconResult<()> {
+    ) -> OperatorResult<()> {
         let output = Python::with_gil(|py| my_python_handler(py, element.clone())).unwrap();
 
         for f in output {
@@ -47,3 +47,6 @@ fn my_python_handler(py: Python, element: ArconElement<MyData>) -> PyResult<Vec<
         .call("handle_element", (element.data.f,), None)?
         .extract()
 }
+
+// map(...)
+//   .map(|asd| )
