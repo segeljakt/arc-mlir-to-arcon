@@ -176,7 +176,7 @@ dependencies = [
 [[package]]
 name = "arcorn"
 version = "0.1.0"
-source = "git+https://github.com/segeljakt/arcorn#c3c40a7509e552df7ccd0da2bb7bf74d52d4129e"
+source = "git+https://github.com/segeljakt/arcorn#58fcc2d7c585f52af1a5df338ae2fa22938208cb"
 dependencies = [
  "arcon",
  "arcon_macros",
@@ -1364,7 +1364,7 @@ dependencies = [
 [[package]]
 name = "macros"
 version = "0.1.0"
-source = "git+https://github.com/segeljakt/arcorn#c3c40a7509e552df7ccd0da2bb7bf74d52d4129e"
+source = "git+https://github.com/segeljakt/arcorn#58fcc2d7c585f52af1a5df338ae2fa22938208cb"
 dependencies = [
  "indexmap",
  "proc-macro2",
