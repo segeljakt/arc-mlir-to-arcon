@@ -1,5 +1,12 @@
 use arcon::prelude::*;
-use std::sync::Arc;
+
+
+//
+// let s = "foo" in
+// let s' = copy(s) in
+// let x = s' ++ "bar" in
+// let c = s ++ "baz"
+//
 
 pub mod arc_types {
     use arcorn::arcorn;

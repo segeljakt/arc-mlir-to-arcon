@@ -5,6 +5,7 @@
 extern crate enum_methods;
 
 mod operators {
+    mod arc;
     mod adt;
     mod arena;
     mod box_to_rc;
